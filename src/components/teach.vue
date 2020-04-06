@@ -135,15 +135,16 @@ export default {
       let fun1 = function() {
         return new Promise((resolve, reject) => {
           console.log("fun1");
-          resolve('11');
+          resolve('resolve fun1');
+          //reject('fun1 error');
         });
       };
       let fun2 = function() {
         return new Promise((resolve, reject) => {
           console.log("fun2");
           //resolve("resolve fun2")
-          throw "fun2 error";
-          //reject('fun2 error')
+          //throw "fun2 error";
+          reject('fun2 error')
         });
       };
       let fun3 = function() {
@@ -164,11 +165,21 @@ export default {
       //fun1().then(fun2).then(fun3).then(function(){console.log('fun4')})
       //fun2打断
       //fun1().then(fun2).then(fun3);console.log("fun4");
-      //fun1().then(fun2).then(fun3).catch(error=>{console.log(error)});console.log("fun4");
-      //promise all使用(接受参数为promise,两个都成功继续,错误会放到最后处理，如果想先处理,加await)
-      Promise.all([fun1(),fun2()]).then(fun3).catch(error=>{console.log(error)})
-      //promise race使用（接受参数为promise，一个成功继续)
-      Promise.race([fun1(),fun2()]).then(fun3).catch(error=>{console.log(error)})
+      fun1().then(fun2).then(fun3).catch(error=>{console.log(error)});console.log("fun4");
+      //promise all使用(接受参数为promise,两个都成功继续,返回两个成功的结果值,一个错误则全部停止,在外面catch只捕捉第一个错误)
+      //Promise.all([fun1(),fun2()]).then(item=>{console.log(item);fun3()}).catch(error=>{console.log(error)})
+      //promise race使用（接受参数为promise，返回第一个结果（resolve在then处理，reject在catch处理,在里面设置该promise是pending)
+      //Promise.race([fun1(),fun2()]).then(fun3).catch(error=>{console.log(error)})
+      /***************************************************************************************************/
+      /*补充说明1，如果想fun1=>fun2=>fun1内部处理错误，pending=>fun2抛出错误，由外部catch解决，fun3不执行
+      //Promise.race([fun1().catch(error=>{console.log(error)}),fun2()]).then(fun3).catch(error=>{console.log(error)})
+      /*补充说明2，如果想fun1、fun2后，处理完错误，再处理fun3，可以用以下形式，注意，catch后promise处于pending状态
+      await async function(){
+        fun1().catch(error=>{console.log(error)})
+        await fun2().catch(error=>{console.log(error)})
+      }()
+      fun3()
+      /***************************************************************************************************/
     },
     //Network中没有数据,删除await对比执行顺序
     async clickmock() {
